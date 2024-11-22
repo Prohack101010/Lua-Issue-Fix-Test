@@ -178,11 +178,7 @@ class Main extends Sprite
 		Sys.println(errMsg);
 		Sys.println("Crash dump saved in " + Path.normalize(path));
 
-        #if android
-        AndroidTools.showAlertDialog("Error!", errMsg, null, null);
-        #else
-        Log.error(errMsg);
-        #end
+		Application.current.window.alert(errMsg, "Error!");
     #if desktop
 		DiscordClient.shutdown();
 	 #end
