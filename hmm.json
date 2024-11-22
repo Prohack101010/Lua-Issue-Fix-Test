@@ -88,6 +88,12 @@
       "url":"https://github.com/mcagabe19-stuff/linc_luajit-rewriten"
     },
     {
+      "name": "flxanimate",
+      "type": "git",
+      "ref": "dev",
+      "url": "https://github.com/ShadowMario/flxanimate"
+    },
+    {
       "name":"extension-androidtools",
       "type":"git",
       "dir":null,
