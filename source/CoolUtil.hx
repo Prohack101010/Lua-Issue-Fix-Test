@@ -1,6 +1,5 @@
 package;
 
-import flixel.text.FlxText;
 import flixel.util.FlxSave;
 import flixel.FlxG;
 import openfl.utils.Assets;
@@ -151,20 +150,5 @@ class CoolUtil
 		return #if (flixel < "5.0.0") folder #else FlxG.stage.application.meta.get('company')
 			+ '/'
 			+ FlxSave.validate(FlxG.stage.application.meta.get('file')) #end;
-	}
-	
-	public static function setTextBorderFromString(text:FlxText, border:String)
-	{
-		switch(border.toLowerCase().trim())
-		{
-			case 'shadow':
-				text.borderStyle = SHADOW;
-			case 'outline':
-				text.borderStyle = OUTLINE;
-			case 'outline_fast', 'outlinefast':
-				text.borderStyle = OUTLINE_FAST;
-			default:
-				text.borderStyle = NONE;
-		}
 	}
 }

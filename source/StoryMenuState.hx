@@ -235,23 +235,26 @@ class StoryMenuState extends MusicBeatState
 				changeDifficulty();
 			}
 
-			if (FlxG.mouse.overlaps(rightArrow) && FlxG.mouse.justPressed || controls.UI_RIGHT)
+        for (touch in FlxG.touches.list){		
+			if (touch.overlaps(rightArrow) && touch.justPressed || controls.UI_RIGHT)
 				rightArrow.animation.play('press')
 			else
 				rightArrow.animation.play('idle');
 
-			if (FlxG.mouse.overlaps(leftArrow) && FlxG.mouse.justPressed || controls.UI_LEFT)
+			if (touch.overlaps(leftArrow) && touch.justPressed || controls.UI_LEFT)
 				leftArrow.animation.play('press');
 			else
 				leftArrow.animation.play('idle');
 
-			if (FlxG.mouse.overlaps(rightArrow) && FlxG.mouse.justPressed || controls.UI_RIGHT_P)
+			if (touch.overlaps(rightArrow) && touch.justPressed || controls.UI_RIGHT_P)
 				changeDifficulty(1);
-			else if (FlxG.mouse.overlaps(leftArrow) && FlxG.mouse.justPressed || controls.UI_LEFT_P)
+			else if (touch.overlaps(leftArrow) && touch.justPressed || controls.UI_LEFT_P)
 				changeDifficulty(-1);
 			else if (upP || downP || SwipeUtil.swipeUp || SwipeUtil.swipeDown)
 				changeDifficulty();
+		}
 
+            for (touch in FlxG.touches.list){
     			if(FlxG.keys.justPressed.CONTROL #if mobile || _virtualpad.buttonX.justPressed #end)
     			{
     				#if mobile
@@ -270,13 +273,14 @@ class StoryMenuState extends MusicBeatState
     				//FlxG.sound.play(Paths.sound('scrollMenu'));
     			}
 			
-    			else if (FlxG.mouse.overlaps(grpWeekText.members[curWeek]) && FlxG.mouse.justPressed || controls.ACCEPT)
+    			else if (touch.overlaps(grpWeekText.members[curWeek]) && touch.justPressed || controls.ACCEPT)
     			{
     				selectWeek();
     			}
+    		}
 		}
 
-		if (controls.BACK && !movedBack && !selectedWeek #if android || FlxG.android.justReleased.BACK && !movedBack && !selectedWeek #end #if mobile || SwipeUtil.swipeRight && !movedBack && !selectedWeek #end)
+		if (controls.BACK && !movedBack && !selectedWeek #if android || FlxG.android.justReleased.BACK && !movedBack && !selectedWeek || SwipeUtil.swipeRight && !movedBack && !selectedWeek #end)
 		{
 			FlxG.sound.play(Paths.sound('cancelMenu'));
 			movedBack = true;
