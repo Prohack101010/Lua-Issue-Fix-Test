@@ -18,7 +18,6 @@ import flixel.util.FlxTimer;
 import lime.net.curl.CURLCode;
 import flixel.graphics.FlxGraphic;
 import WeekData;
-import mobile.SwipeUtil;
 
 using StringTools;
 
@@ -187,10 +186,8 @@ class StoryMenuState extends MusicBeatState
 		changeWeek();
 		changeDifficulty();
 
-                #if android
-                addVirtualPad(NONE, X_Y);
-                #elseif ios
-                addVirtualPad(NONE, B_X_Y);
+                #if mobile
+                addVirtualPad(FULL, A_B_X_Y);
                 #end
 
 		super.create();
@@ -216,13 +213,13 @@ class StoryMenuState extends MusicBeatState
 		{
 			var upP = controls.UI_UP_P;
 			var downP = controls.UI_DOWN_P;
-			if (upP || SwipeUtil.swipeUp)
+			if (upP)
 			{
 				changeWeek(-1);
 				FlxG.sound.play(Paths.sound('scrollMenu'));
 			}
 
-			if (downP || SwipeUtil.swipeDown)
+			if (downP)
 			{
 				changeWeek(1);
 				FlxG.sound.play(Paths.sound('scrollMenu'));
@@ -235,52 +232,47 @@ class StoryMenuState extends MusicBeatState
 				changeDifficulty();
 			}
 
-        for (touch in FlxG.touches.list){		
-			if (touch.overlaps(rightArrow) && touch.justPressed || controls.UI_RIGHT)
+			if (controls.UI_RIGHT)
 				rightArrow.animation.play('press')
 			else
 				rightArrow.animation.play('idle');
 
-			if (touch.overlaps(leftArrow) && touch.justPressed || controls.UI_LEFT)
+			if (controls.UI_LEFT)
 				leftArrow.animation.play('press');
 			else
 				leftArrow.animation.play('idle');
 
-			if (touch.overlaps(rightArrow) && touch.justPressed || controls.UI_RIGHT_P)
+			if (controls.UI_RIGHT_P)
 				changeDifficulty(1);
-			else if (touch.overlaps(leftArrow) && touch.justPressed || controls.UI_LEFT_P)
+			else if (controls.UI_LEFT_P)
 				changeDifficulty(-1);
-			else if (upP || downP || SwipeUtil.swipeUp || SwipeUtil.swipeDown)
+			else if (upP || downP)
 				changeDifficulty();
+
+			if(FlxG.keys.justPressed.CONTROL #if mobile || _virtualpad.buttonX.justPressed #end)
+			{
+				#if mobile
+				removeVirtualPad();
+				#end
+				persistentUpdate = false;
+				openSubState(new GameplayChangersSubstate());
+			}
+			else if(controls.RESET #if mobile || _virtualpad.buttonY.justPressed #end)
+			{
+				#if mobile
+				removeVirtualPad();
+				#end
+				persistentUpdate = false;
+				openSubState(new ResetScoreSubState('', curDifficulty, '', curWeek));
+				//FlxG.sound.play(Paths.sound('scrollMenu'));
+			}
+			else if (controls.ACCEPT)
+			{
+				selectWeek();
+			}
 		}
 
-            for (touch in FlxG.touches.list){
-    			if(FlxG.keys.justPressed.CONTROL #if mobile || _virtualpad.buttonX.justPressed #end)
-    			{
-    				#if mobile
-    				removeVirtualPad();
-    				#end
-    				persistentUpdate = false;
-    				openSubState(new GameplayChangersSubstate());
-    			}
-    			else if(controls.RESET #if mobile || _virtualpad.buttonY.justPressed #end)
-    			{
-    				#if mobile
-    				removeVirtualPad();
-    				#end
-    				persistentUpdate = false;
-    				openSubState(new ResetScoreSubState('', curDifficulty, '', curWeek));
-    				//FlxG.sound.play(Paths.sound('scrollMenu'));
-    			}
-			
-    			else if (touch.overlaps(grpWeekText.members[curWeek]) && touch.justPressed || controls.ACCEPT)
-    			{
-    				selectWeek();
-    			}
-    		}
-		}
-
-		if (controls.BACK && !movedBack && !selectedWeek #if android || FlxG.android.justReleased.BACK && !movedBack && !selectedWeek || SwipeUtil.swipeRight && !movedBack && !selectedWeek #end)
+		if (controls.BACK && !movedBack && !selectedWeek)
 		{
 			FlxG.sound.play(Paths.sound('cancelMenu'));
 			movedBack = true;

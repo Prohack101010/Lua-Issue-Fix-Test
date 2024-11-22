@@ -150,8 +150,9 @@ class MobileControls extends FlxSpriteGroup {
 			  newhbox = new FlxNewHitbox();
 			  add(newhbox);
 			default:
-				newhbox = new FlxNewHitbox();
-			    add(newhbox);
+				vpad = new FlxVirtualPad(RIGHT_FULL, controlExtend, 0.75, ClientPrefs.globalAntialiasing);	
+				add(vpad);					
+				vpad = extendConfig.loadcustom(vpad);
 		}
 	}
 
@@ -170,7 +171,7 @@ class MobileControls extends FlxSpriteGroup {
 			case 5: 
 				KEYBOARD;
 			default: 
-				HITBOX;
+				VIRTUALPAD_RIGHT;
 		}
 	}
 }

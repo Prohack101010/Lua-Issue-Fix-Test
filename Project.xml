@@ -30,7 +30,8 @@
 	<window if="desktop" orientation="landscape" fullscreen="false" resizable="true" vsync="false"/>
 
 	<!--Mobile-specific-->
-	<window if="mobile" orientation="landscape" fullscreen="true" resizable="false" allow-shaders="true" require-shaders="true" allow-high-dpi="true" />
+	<!--<window if="mobile" orientation="landscape" fullscreen="true" resizable="false" allow-shaders="true" require-shaders="true" allow-high-dpi="true" />-->
+	<window if="mobile" orientation="landscape" fullscreen="true" width="1280" height="720" resizable="false"/>
 
 	<!--Switch-specific-->
 	<window if="switch" orientation="landscape" fullscreen="true" width="0" height="0" resizable="true" />
@@ -143,7 +144,7 @@
 	<haxelib name="discord_rpc" if="desktop"/>
 
 	<!-- Enables a terminal log prompt on debug builds -->
-	<!--<haxelib name="hxcpp-debug-server" if="debug"/>-->
+	<haxelib name="hxcpp-debug-server" if="debug"/>
 
 	<!-- <haxelib name="markdown" /> -->
 	<!-- <haxelib name="HtmlParser" /> -->
@@ -187,15 +188,22 @@
 	<haxedef name="NAPE_RELEASE_BUILD" unless="debug" />
 	
 	<!--Used for Izzy Engine's crash handler-->
-	<haxedef name="HXCPP_CHECK_POINTER" />
-	<haxedef name="HXCPP_STACK_LINE" />
-	<haxedef name="HXCPP_STACK_TRACE" />
+	<haxedef name="HXCPP_CHECK_POINTER" if="CRASH_HANDLER" />
+	<haxedef name="HXCPP_STACK_LINE" if="CRASH_HANDLER" />
+
+	<!-- _________________________________ Android Stuff _______________________________ -->
 	
-	<haxedef name="message.reporting" value="pretty" />
-	<haxedef name='no-deprecation-warnings' />
+	<section if="android">
+			<!-- Do whatever you want I'm tired uninstall and install everytime -->
+			<certificate path="key.keystore" password="psychengine" alias="psychport" alias-password="psychengine" unless="debug" />
+		
+			<config:android permission="android.permission.READ_EXTERNAL_STORAGE" />
+	        <config:android permission="android.permission.WRITE_EXTERNAL_STORAGE" />
+	        <config:android permission="android.permission.MANAGE_EXTERNAL_STORAGE" />
+	</section>
 	
-	<!-- Do whatever you want I'm tired uninstall and install everytime -->
-	<certificate path="key.keystore" password="psychengine" alias="psychport" alias-password="psychengine" if="android" unless="debug" />
+  <!--<config:android gradle-version="7.5.1" />
+  <config:android gradle-plugin="7.3.1" />-->
 
 	<!-- _________________________________ Custom _______________________________ -->
 

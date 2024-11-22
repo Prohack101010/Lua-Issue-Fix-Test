@@ -30,7 +30,7 @@ using StringTools;
 
 class OptionsState extends MusicBeatState
 {
-	var options:Array<String> = ['Note Colors', 'Controls', 'Adjust Delay and Combo', 'Graphics', 'Visuals', 'Gameplay' #if mobile , 'Mobile Options' #end];
+	var options:Array<String> = ['Note Colors', 'Controls', 'Adjust Delay and Combo', 'Graphics', 'Visuals and UI', 'Gameplay'];
 	private var grpOptions:FlxTypedGroup<Alphabet>;
 	private static var curSelected:Int = 0;
 	public static var menuBG:FlxSprite;
@@ -44,36 +44,24 @@ class OptionsState extends MusicBeatState
 				openSubState(new options.NotesSubState());
 			case 'Controls':
 				#if mobile
-				if (ClientPrefs.VirtualPadAlpha == 0) { removeVirtualPad(); }
-				else {
-    				FlxTransitionableState.skipNextTransIn = true;
-    			    FlxTransitionableState.skipNextTransOut = true;
-    			    MusicBeatState.switchState(new mobile.MobileControlsMenu());
-			    }
-			    if (ClientPrefs.VirtualPadAlpha == 0) { openSubState(new options.ControlsSubState()); }
-				#else
-				openSubState(new options.ControlsSubState());
+				removeVirtualPad();
 				#end
+				openSubState(new options.ControlsSubState());
 			case 'Graphics':
 				#if mobile
 				removeVirtualPad();
 				#end
 				openSubState(new options.GraphicsSettingsSubState());
-			case 'Visuals':
+			case 'Visuals and UI':
 				#if mobile
 				removeVirtualPad();
 				#end
-				openSubState(new options.VisualsSubState());
+				openSubState(new options.VisualsUISubState());
 			case 'Gameplay':
 				#if mobile
 				removeVirtualPad();
 				#end
 				openSubState(new options.GameplaySettingsSubState());
-			#if mobile
-			case 'Mobile Options':
-				removeVirtualPad();
-			    openSubState(new mobile.options.MobileOptionsSubState());
-			#end
 			case 'Adjust Delay and Combo':
 				LoadingState.loadAndSwitchState(new options.NoteOffsetState());
 		}
@@ -134,7 +122,7 @@ class OptionsState extends MusicBeatState
 		ClientPrefs.saveSettings();
 
 		#if mobile
-		addVirtualPad(UP_DOWN, A_B);
+		addVirtualPad(UP_DOWN, A_B_X_Y);
 		#end
 
 		super.create();

@@ -3,7 +3,7 @@ package;
 #if desktop
 import Discord.DiscordClient;
 #end
-import openfl.text.TextField;
+import flash.text.TextField;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.addons.display.FlxGridOverlay;
@@ -71,8 +71,8 @@ class AchievementsMenuState extends MusicBeatState
 		add(descText);
 		changeSelection();
 
-                #if ios
-                addVirtualPad(NONE, A_B);
+                #if mobile
+                addVirtualPad(UP_DOWN, A_B);
                 #end
 
 		super.create();
@@ -81,14 +81,14 @@ class AchievementsMenuState extends MusicBeatState
 	override function update(elapsed:Float) {
 		super.update(elapsed);
 
-		if (controls.UI_UP_P || SwipeUtil.swipeUp) {
+		if (controls.UI_UP_P) {
 			changeSelection(-1);
 		}
-		if (controls.UI_DOWN_P || SwipeUtil.swipeDown) {
+		if (controls.UI_DOWN_P) {
 			changeSelection(1);
 		}
 
-		if (controls.BACK #if android || FlxG.android.justReleased.BACK || SwipeUtil.swipeRight #end) {
+		if (controls.BACK) {
 			FlxG.sound.play(Paths.sound('cancelMenu'));
 			MusicBeatState.switchState(new MainMenuState());
 		}

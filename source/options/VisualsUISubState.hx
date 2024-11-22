@@ -3,7 +3,7 @@ package options;
 #if desktop
 import Discord.DiscordClient;
 #end
-import openfl.text.TextField;
+import flash.text.TextField;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.addons.display.FlxGridOverlay;
@@ -13,7 +13,7 @@ import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import lime.utils.Assets;
 import flixel.FlxSubState;
-import openfl.text.TextField;
+import flash.text.TextField;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.util.FlxSave;
@@ -27,12 +27,12 @@ import Controls;
 
 using StringTools;
 
-class VisualsSubState extends BaseOptionsMenu
+class VisualsUISubState extends BaseOptionsMenu
 {
 	public function new()
 	{
-		title = 'Visuals Settings';
-		rpcTitle = 'Visuals Settings Menu'; //for Discord Rich Presence
+		title = 'Visuals and UI';
+		rpcTitle = 'Visuals & UI Settings Menu'; //for Discord Rich Presence
 
 		var option:Option = new Option('Note Splashes',
 			"If unchecked, hitting \"Sick!\" notes won't show particles.",

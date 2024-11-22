@@ -3,7 +3,7 @@ package mobile.options;
 #if desktop
 import Discord.DiscordClient;
 #end
-import openfl.text.TextField;
+import flash.text.TextField;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.FlxCamera;
@@ -15,7 +15,7 @@ import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import lime.utils.Assets;
 import flixel.FlxSubState;
-import openfl.text.TextField;
+import flash.text.TextField;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.util.FlxSave;
@@ -48,7 +48,7 @@ class MobileOptionsSubState extends BaseOptionsMenu
 	
 	public function new()
 	{
-		title = 'Mobile Options';
+		title = 'Mobile Settings';
 		rpcTitle = 'Mobile Options Menu'; //hi, you can ask what is that, i will answer it's all what you needed lol.
 		
 		var option:Option = new Option('VirtualPad Skin',
@@ -108,7 +108,7 @@ class MobileOptionsSubState extends BaseOptionsMenu
 			'hitboxtype',
 			'string',
 			'No Gradient',
-			['Gradient', 'No Gradient'/*bruh, 'No Gradient (Old)'*/]);
+			['Gradient', 'No Gradient', 'No Gradient (Old)']);
 		  addOption(option);
 
 		var option:Option = new Option('Hitbox Hint',
@@ -122,7 +122,7 @@ class MobileOptionsSubState extends BaseOptionsMenu
 			'Changes opacity -omg',
 			'hitboxalpha',
 			'float',
-			0.7);
+			0.2);
 		option.scrollSpeed = 1.6;
 		option.minValue = 0.0;
 		option.maxValue = 1;
@@ -136,7 +136,7 @@ class MobileOptionsSubState extends BaseOptionsMenu
 			'float',
 			0.75);
 		option.scrollSpeed = 1.6;
-		option.minValue = 0;
+		option.minValue = 0.1;
 		option.maxValue = 1;
 		option.changeValue = 0.01;
 		option.decimals = 2;

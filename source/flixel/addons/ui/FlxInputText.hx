@@ -1,9 +1,9 @@
 package flixel.addons.ui;
 
 import lime.system.Clipboard;
-import openfl.errors.Error;
-import openfl.events.KeyboardEvent;
-import openfl.geom.Rectangle;
+import flash.errors.Error;
+import flash.events.KeyboardEvent;
+import flash.geom.Rectangle;
 import flixel.addons.ui.FlxUI.NamedString;
 import flixel.FlxG;
 import flixel.FlxSprite;
@@ -314,7 +314,7 @@ class FlxInputText extends FlxText
 			if (mouseOverlapping())
 			{
 				caretIndex = getCaretIndex();
-				hasFocus = FlxG.stage.window.textInputEnabled = true;
+				hasFocus = true;
 				if (!hadFocus && focusGained != null)
 					focusGained();
 			}

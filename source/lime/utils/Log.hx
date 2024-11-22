@@ -49,9 +49,9 @@ class Log
 					+ '\n');
 
                                 #if android
-                    			SUtil.showPopUp("Error!", message);
+                    			AndroidTools.showAlertDialog("Error!", message, null, null);
                     			#else
-                    			SUtil.showPopUp("Error!", message);
+                    			Log.error(message);
                     			#end
 				throw message;
 			}

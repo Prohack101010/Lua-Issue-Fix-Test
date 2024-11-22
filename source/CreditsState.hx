@@ -3,7 +3,7 @@ package;
 #if desktop
 import Discord.DiscordClient;
 #end
-import openfl.text.TextField;
+import flash.text.TextField;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.addons.display.FlxGridOverlay;
@@ -167,8 +167,8 @@ class CreditsState extends MusicBeatState
 		bg.color = getCurrentBGColor();
 		intendedColor = bg.color;
 		changeSelection();
-                #if ios
-                addVirtualPad(NONE, B);
+                #if mobile
+                addVirtualPad(UP_DOWN, A_B);
                 #end
 		super.create();
 	}
@@ -192,18 +192,18 @@ class CreditsState extends MusicBeatState
 				var upP = controls.UI_UP_P;
 				var downP = controls.UI_DOWN_P;
 
-				if (upP || SwipeUtil.swipeUp)
+				if (upP)
 				{
 					changeSelection(-shiftMult);
 					holdTime = 0;
 				}
-				if (downP || SwipeUtil.swipeDown)
+				if (downP)
 				{
 					changeSelection(shiftMult);
 					holdTime = 0;
 				}
 
-				if(controls.UI_DOWN || controls.UI_UP || SwipeUtil.swipeDown || SwipeUtil.swipeUp)
+				if(controls.UI_DOWN || controls.UI_UP)
 				{
 					var checkLastHold:Int = Math.floor((holdTime - 0.5) * 10);
 					holdTime += elapsed;
@@ -211,24 +211,15 @@ class CreditsState extends MusicBeatState
 
 					if(holdTime > 0.5 && checkNewHold - checkLastHold > 0)
 					{
-						#if desktop
 						changeSelection((checkNewHold - checkLastHold) * (controls.UI_UP ? -shiftMult : shiftMult));
-						#else
-						changeSelection((checkNewHold - checkLastHold) * (SwipeUtil.swipeUp ? -shiftMult : shiftMult));
-						#end
 					}
 				}
 			}
-            
-            for (item in grpOptions.members)
-		    {
-            for (touch in FlxG.touches.list){		
-    			if(controls.ACCEPT && (creditsStuff[curSelected][3] == null || creditsStuff[curSelected][3].length > 4) || touch.overlaps(item) && item.targetY == 0 && touch.justPressed && (creditsStuff[curSelected][3] == null || creditsStuff[curSelected][3].length > 4)) {
-    				CoolUtil.browserLoad(creditsStuff[curSelected][3]);
-    			}
-    		}
-    		}
-			if (controls.BACK #if android || FlxG.android.justReleased.BACK || SwipeUtil.swipeRight #end)
+
+			if(controls.ACCEPT && (creditsStuff[curSelected][3] == null || creditsStuff[curSelected][3].length > 4)) {
+				CoolUtil.browserLoad(creditsStuff[curSelected][3]);
+			}
+			if (controls.BACK)
 			{
 				if(colorTween != null) {
 					colorTween.cancel();
