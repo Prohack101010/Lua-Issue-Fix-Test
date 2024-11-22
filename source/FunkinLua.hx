@@ -8,7 +8,14 @@ import llua.State;
 import llua.Convert;
 #end
 
-import animateatlas.AtlasFrameMaker;
+#if android
+import android.widget.Toast as AndroidToast;
+import android.Tools as AndroidTools;
+//import android.os.BatteryManager as AndroidBatteryManager;
+import mobile.PsychJNI;
+#end
+
+// import animateatlas.AtlasFrameMaker;
 import flixel.FlxG;
 import flixel.addons.effects.FlxTrail;
 import flixel.input.keyboard.FlxKey;
@@ -91,11 +98,11 @@ class FunkinLua {
 			var resultStr:String = Lua.tostring(lua, result);
 			if(resultStr != null && result != 0) {
 				trace('Error on lua script! ' + resultStr);
-				#if (windows || android)
-				lime.app.Application.current.window.alert(resultStr, 'Error on lua script!');
-				#else
-				luaTrace('Error loading lua script: "$script"\n' + resultStr, true, false, FlxColor.RED);
-				#end
+				#if android
+                SUtil.showPopUp("Error on .LUA script!", resultStr);
+                #else
+                luaTrace('Error loading lua script: "$script"\n' + resultStr, true, false, FlxColor.RED);
+                #end
 				lua = null;
 				return;
 			}
@@ -228,6 +235,8 @@ class FunkinLua {
 		set('buildTarget', 'browser');
 		#elseif android
 		set('buildTarget', 'android');
+		#elseif ios
+		set('buildTarget', 'ios');
 		#else
 		set('buildTarget', 'unknown');
 		#end
@@ -1878,12 +1887,34 @@ class FunkinLua {
 			PlayState.instance.modchartSprites.set(tag, leSprite);
 			leSprite.active = true;
 		});
+		Lua_helper.add_callback(lua, "makeLuaAssetsSprite", function(tag:String, image:String, x:Float, y:Float) {
+			tag = tag.replace('.', '');
+			resetSpriteTag(tag);
+			var leSprite:ModchartSprite = new ModchartSprite(x, y);
+			if(image != null && image.length > 0)
+			{
+				leSprite.loadGraphic(Paths.assetsimage(image));
+			}
+			leSprite.antialiasing = ClientPrefs.globalAntialiasing;
+			PlayState.instance.modchartSprites.set(tag, leSprite);
+			leSprite.active = true;
+		});
 		Lua_helper.add_callback(lua, "makeAnimatedLuaSprite", function(tag:String, image:String, x:Float, y:Float, ?spriteType:String = "sparrow") {
 			tag = tag.replace('.', '');
 			resetSpriteTag(tag);
 			var leSprite:ModchartSprite = new ModchartSprite(x, y);
 
 			loadFrames(leSprite, image, spriteType);
+			leSprite.antialiasing = ClientPrefs.globalAntialiasing;
+			PlayState.instance.modchartSprites.set(tag, leSprite);
+		});
+		
+		Lua_helper.add_callback(lua, "makeAnimatedLuaAssetsSprite", function(tag:String, image:String, x:Float, y:Float, ?spriteType:String = "sparrow") {
+			tag = tag.replace('.', '');
+			resetSpriteTag(tag);
+			var leSprite:ModchartSprite = new ModchartSprite(x, y);
+
+			loadAssetsFrames(leSprite, image, spriteType);
 			leSprite.antialiasing = ClientPrefs.globalAntialiasing;
 			PlayState.instance.modchartSprites.set(tag, leSprite);
 		});
@@ -1955,7 +1986,8 @@ class FunkinLua {
 				var luaObj:FlxSprite = PlayState.instance.getLuaObject(obj,false);
 				if(luaObj.animation.getByName(name) != null)
 				{
-					luaObj.animation.play(name, forced, reverse, startFrame);
+					if(luaObj.animation != null) luaObj.animation.play(name, forced, reverse, startFrame); //FlxAnimate
+				else luaObj.animation.play(name, forced, reverse, startFrame);
 					if(Std.isOfType(luaObj, ModchartSprite))
 					{
 						//convert luaObj to ModchartSprite
@@ -2016,34 +2048,30 @@ class FunkinLua {
 			}
 		});
 		Lua_helper.add_callback(lua, "addLuaSprite", function(tag:String, front:Bool = false) {
-			if(PlayState.instance.modchartSprites.exists(tag)) {
-				var shit:ModchartSprite = PlayState.instance.modchartSprites.get(tag);
-				if(!shit.wasAdded) {
-					if(front)
-					{
-						getInstance().add(shit);
-					}
-					else
-					{
-						if(PlayState.instance.isDead)
-						{
-							GameOverSubstate.instance.insert(GameOverSubstate.instance.members.indexOf(GameOverSubstate.instance.boyfriend), shit);
-						}
-						else
-						{
+					var mySprite:FlxSprite = null;
+        			if(PlayState.instance.modchartSprites.exists(tag)) mySprite = PlayState.instance.modchartSprites.get(tag);
+        			else if(PlayState.instance.variables.exists(tag)) mySprite = PlayState.instance.variables.get(tag);
+        
+        			if(mySprite == null) return false;
+        
+        			if(front)
+        				getInstance().add(mySprite);
+        			else
+        			{
+        				if(!PlayState.instance.isDead)
+        				{
 							var position:Int = PlayState.instance.members.indexOf(PlayState.instance.gfGroup);
 							if(PlayState.instance.members.indexOf(PlayState.instance.boyfriendGroup) < position) {
 								position = PlayState.instance.members.indexOf(PlayState.instance.boyfriendGroup);
 							} else if(PlayState.instance.members.indexOf(PlayState.instance.dadGroup) < position) {
 								position = PlayState.instance.members.indexOf(PlayState.instance.dadGroup);
 							}
-							PlayState.instance.insert(position, shit);
+							PlayState.instance.insert(position, mySprite);
 						}
+					    else
+					        GameOverSubstate.instance.insert(GameOverSubstate.instance.members.indexOf(GameOverSubstate.instance.boyfriend), mySprite);
 					}
-					shit.wasAdded = true;
-					//trace('added a thing: ' + tag);
-				}
-			}
+					return true;
 		});
 		Lua_helper.add_callback(lua, "setGraphicSize", function(obj:String, x:Int, y:Int = 0, updateHitbox:Bool = true) {
 			if(PlayState.instance.getLuaObject(obj)!=null) {
@@ -2900,6 +2928,83 @@ class FunkinLua {
 			#end
 			return list;
 		});
+		
+		Lua_helper.add_callback(lua, "vibrate", (duration:Null<Int>, ?period:Null<Int>) ->
+		{
+			if (duration == null)
+				return luaTrace('vibrate: No duration specified.');
+			else if (period == null)
+				period = 0;
+			return lime.ui.Haptic.vibrate(period, duration);
+		});
+		
+		#if android
+		//static var spicyPillow:AndroidBatteryManager = new AndroidBatteryManager();
+		//Lua_helper.add_callback(lua, "isRooted", AndroidTools.isRooted());
+		Lua_helper.add_callback(lua, "isDolbyAtmos", AndroidTools.isDolbyAtmos());
+		Lua_helper.add_callback(lua, "isAndroidTV", AndroidTools.isAndroidTV());
+		Lua_helper.add_callback(lua, "isTablet", AndroidTools.isTablet());
+		Lua_helper.add_callback(lua, "isChromebook", AndroidTools.isChromebook());
+		Lua_helper.add_callback(lua, "isDeXMode", AndroidTools.isDeXMode());
+		Lua_helper.add_callback(lua, "backJustPressed", FlxG.android.justPressed.BACK);
+		Lua_helper.add_callback(lua, "backPressed", FlxG.android.pressed.BACK);
+		Lua_helper.add_callback(lua, "backJustReleased", FlxG.android.justReleased.BACK);
+		Lua_helper.add_callback(lua, "menuJustPressed", FlxG.android.justPressed.MENU);
+		Lua_helper.add_callback(lua, "menuPressed", FlxG.android.pressed.MENU);
+		Lua_helper.add_callback(lua, "menuJustReleased", FlxG.android.justReleased.MENU);
+		Lua_helper.add_callback(lua, "getCurrentOrientation", () -> PsychJNI.getCurrentOrientationAsString());
+		Lua_helper.add_callback(lua, "setOrientation", function(hint:Null<String>):Void
+		{
+			switch (hint.toLowerCase())
+			{
+				case 'portrait':
+					hint = 'Portrait';
+				case 'portraitupsidedown' | 'upsidedownportrait' | 'upsidedown':
+					hint = 'PortraitUpsideDown';
+				case 'landscapeleft' | 'leftlandscape':
+					hint = 'LandscapeLeft';
+				case 'landscaperight' | 'rightlandscape' | 'landscape':
+					hint = 'LandscapeRight';
+				default:
+					hint = null;
+			}
+			if (hint == null)
+				return luaTrace('setOrientation: No orientation specified.');
+			PsychJNI.setOrientation(FlxG.stage.stageWidth, FlxG.stage.stageHeight, false, hint);
+		});
+		Lua_helper.add_callback(lua, "minimizeWindow", () -> AndroidTools.minimizeWindow());
+		Lua_helper.add_callback(lua, "showToast", function(text:String, duration:Null<Int>, ?xOffset:Null<Int>, ?yOffset:Null<Int>)
+		{
+			if (text == null)
+				return luaTrace('showToast: No text specified.');
+			else if (duration == null)
+				return luaTrace('showToast: No duration specified.');
+
+			if (xOffset == null)
+				xOffset = 0;
+			if (yOffset == null)
+				yOffset = 0;
+
+			AndroidToast.makeText(text, duration, -1, xOffset, yOffset);
+		});
+		Lua_helper.add_callback(lua, "isScreenKeyboardShown", () -> PsychJNI.isScreenKeyboardShown());
+
+		Lua_helper.add_callback(lua, "clipboardHasText", () -> PsychJNI.clipboardHasText());
+		Lua_helper.add_callback(lua, "clipboardGetText", () -> PsychJNI.clipboardGetText());
+		Lua_helper.add_callback(lua, "clipboardSetText", function(text:Null<String>):Void
+		{
+			if (text != null) return luaTrace('clipboardSetText: No text specified.');
+			PsychJNI.clipboardSetText(text);
+		});
+
+		Lua_helper.add_callback(lua, "manualBackButton", () -> PsychJNI.manualBackButton());
+
+		Lua_helper.add_callback(lua, "setActivityTitle", function(text:Null<String>):Void
+		{
+			if (text != null) return luaTrace('setActivityTitle: No text specified.');
+			PsychJNI.setActivityTitle(text);
+		});
+		#end
 
 		call('onCreate', []);
 		#end
@@ -3186,17 +3291,35 @@ class FunkinLua {
 	{
 		switch(spriteType.toLowerCase().trim())
 		{
-			case "texture" | "textureatlas" | "tex":
-				spr.frames = AtlasFrameMaker.construct(image);
+			// case "texture" | "textureatlas" | "tex":
+				// spr.frames = AtlasFrameMaker.construct(image);
 
-			case "texture_noaa" | "textureatlas_noaa" | "tex_noaa":
-				spr.frames = AtlasFrameMaker.construct(image, null, true);
+			// case "texture_noaa" | "textureatlas_noaa" | "tex_noaa":
+				// spr.frames = AtlasFrameMaker.construct(image, null, true);
 
 			case "packer" | "packeratlas" | "pac":
 				spr.frames = Paths.getPackerAtlas(image);
 
 			default:
 				spr.frames = Paths.getSparrowAtlas(image);
+		}
+	}
+	
+	function loadAssetsFrames(spr:FlxSprite, image:String, spriteType:String)
+	{
+		switch(spriteType.toLowerCase().trim())
+		{
+			// case "texture" | "textureatlas" | "tex":
+				// spr.frames = AtlasFrameMaker.construct(image);
+
+			// case "texture_noaa" | "textureatlas_noaa" | "tex_noaa":
+				// spr.frames = AtlasFrameMaker.construct(image, null, true);
+
+			case "packer" | "packeratlas" | "pac":
+				spr.frames = Paths.getAssetsPackerAtlas(image);
+
+			default:
+				spr.frames = Paths.getAssetsSparrowAtlas(image);
 		}
 	}
 
@@ -3636,6 +3759,7 @@ class HScript
 		#end
 		interp.variables.set('ShaderFilter', openfl.filters.ShaderFilter);
 		interp.variables.set('StringTools', StringTools);
+		interp.variables.set('SUtil', SUtil);
 
 		interp.variables.set('setVar', function(name:String, value:Dynamic)
 		{
@@ -3664,6 +3788,182 @@ class HScript
 		HScript.parser.line = 1;
 		HScript.parser.allowTypes = true;
 		return interp.execute(HScript.parser.parseString(codeToRun));
+	}
+}
+#end
+
+#if flxanimate
+class FlxAnimateFunctions
+{
+	public static function implement(funk:FunkinLua)
+	{
+	    var lua:State = funk.lua;
+		Lua_helper.add_callback(lua, "makeFlxAnimateSprite", function(tag:String, ?x:Float = 0, ?y:Float = 0, ?loadFolder:String = null) {
+			tag = tag.replace('.', '');
+			var lastSprite = PlayState.instance.variables.get(tag);
+			if(lastSprite != null)
+			{
+				lastSprite.kill();
+				PlayState.instance.remove(lastSprite);
+				lastSprite.destroy();
+			}
+
+			var mySprite:ModchartAnimateSprite = new ModchartAnimateSprite(x, y);
+			if(loadFolder != null) loadAtlasCustom(mySprite, loadFolder);
+			PlayState.instance.variables.set(tag, mySprite);
+			mySprite.active = true;
+		});
+
+		Lua_helper.add_callback(lua, "loadAnimateAtlas", function(tag:String, folderOrImg:Dynamic, ?spriteJson:Dynamic = null, ?animationJson:Dynamic = null) {
+			var spr:FlxAnimate = PlayState.instance.variables.get(tag);
+			if(spr != null) loadAtlasCustom(spr, folderOrImg, spriteJson, animationJson);
+		});
+
+		Lua_helper.add_callback(lua, "addAnimationBySymbol", function(tag:String, name:String, symbol:String, ?framerate:Float = 24, ?loop:Bool = false, ?matX:Float = 0, ?matY:Float = 0)
+		{
+			var luaObj:Dynamic = PlayState.instance.variables.get(tag);
+			if(cast (luaObj, FlxAnimate) == null) return false;
+
+			luaObj.animation.addBySymbol(name, symbol, framerate, loop, matX, matY);
+			if(luaObj.animation.lastPlayedAnim == null)
+			{
+				if(luaObj.playAnim != null) luaObj.playAnim(name, true); //is ModchartAnimateSprite
+				else luaObj.animation.play(name, true);
+			}
+			return true;
+		});
+
+		Lua_helper.add_callback(lua, "addAnimationBySymbolIndices", function(tag:String, name:String, symbol:String, ?indices:Any = null, ?framerate:Float = 24, ?loop:Bool = false, ?matX:Float = 0, ?matY:Float = 0)
+		{
+			var luaObj:Dynamic = PlayState.instance.variables.get(tag);
+			if(cast (luaObj, FlxAnimate) == null) return false;
+
+			if(indices == null)
+				indices = [0];
+			else if(Std.isOfType(indices, String))
+			{
+				var strIndices:Array<String> = cast (indices, String).trim().split(',');
+				var myIndices:Array<Int> = [];
+				for (i in 0...strIndices.length) {
+					myIndices.push(Std.parseInt(strIndices[i]));
+				}
+				indices = myIndices;
+			}
+
+			luaObj.animation.addBySymbolIndices(name, symbol, indices, framerate, loop, matX, matY);
+			if(luaObj.animation.lastPlayedAnim == null)
+			{
+				if(luaObj.playAnim != null) luaObj.playAnim(name, true); //is ModchartAnimateSprite
+				else luaObj.animation.play(name, true);
+			}
+			return true;
+		});
+	}
+
+	private static function loadAtlasCustom(spr:FlxAnimate, folderOrImg:Dynamic, spriteJson:Dynamic = null, animationJson:Dynamic = null)
+	{
+		var changedAnimJson = false;
+		var changedAtlasJson = false;
+		var changedImage = false;
+
+		if(spriteJson != null)
+		{
+			changedAtlasJson = true;
+			spriteJson = File.getContent(spriteJson);
+		}
+
+		if(animationJson != null) 
+		{
+			changedAnimJson = true;
+			animationJson = File.getContent(animationJson);
+		}
+
+		// is folder or image path
+		if(Std.isOfType(folderOrImg, String))
+		{
+			var originalPath:String = folderOrImg;
+			for (i in 0...10)
+			{
+				var st:String = '$i';
+				if(i == 0) st = '';
+
+				if(!changedAtlasJson)
+				{
+					spriteJson = getContentFromFile('images/$originalPath/spritemap$st.json');
+					if(spriteJson != null)
+					{
+						//trace('found Sprite Json');
+						changedImage = true;
+						changedAtlasJson = true;
+						folderOrImg = Paths.image('$originalPath/spritemap$st');
+						break;
+					}
+				}
+				else if(Paths.fileExists('images/$originalPath/spritemap$st.png', IMAGE))
+				{
+					//trace('found Sprite PNG');
+					changedImage = true;
+					folderOrImg = Paths.image('$originalPath/spritemap$st');
+					break;
+				}
+			}
+
+			if(!changedImage)
+			{
+				//trace('Changing folderOrImg to FlxGraphic');
+				changedImage = true;
+				folderOrImg = Paths.image(originalPath);
+			}
+
+			if(!changedAnimJson)
+			{
+				//trace('found Animation Json');
+				changedAnimJson = true;
+				animationJson = getContentFromFile('images/$originalPath/Animation.json');
+			}
+		}
+
+		//trace(folderOrImg);
+		//trace(spriteJson);
+		//trace(animationJson);
+		spr.loadAtlasEx(folderOrImg, spriteJson, animationJson);
+	}
+
+	private static function getContentFromFile(path:String):String
+	{
+		var onAssets:Bool = false;
+		var path:String = Paths.getPath(path, TEXT, true);
+		if(FileSystem.exists(path) || (onAssets = true && Assets.exists(path, TEXT)))
+		{
+			// trace('Found text: $path');
+			return !onAssets ? File.getContent(path) : Assets.getText(path);
+		}
+		return null;
+	}
+}
+#end
+
+#if flxanimate
+class ModchartAnimateSprite extends FlxAnimate
+{
+	public var animOffsets:Map<String, Array<Float>> = new Map<String, Array<Float>>();
+	public function new(?x:Float = 0, ?y:Float = 0, ?path:String, ?settings:FlxAnimate.Settings)
+	{
+		super(x, y, path, settings);
+		antialiasing = ClientPrefs.globalAntialiasing;
+	}
+
+	public function playAnim(name:String, forced:Bool = false, ?reverse:Bool = false, ?startFrame:Int = 0)
+	{
+		anim.play(name, forced, reverse, startFrame);
+
+		var daOffset = animOffsets.get(name);
+		if (animOffsets.exists(name)) offset.set(daOffset[0], daOffset[1]);
+	}
+
+	public function addOffset(name:String, x:Float, y:Float)
+	{
+		animOffsets.set(name, [x, y]);
 	}
 }
 #end

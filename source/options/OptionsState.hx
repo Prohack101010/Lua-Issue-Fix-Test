@@ -30,7 +30,7 @@ using StringTools;
 
 class OptionsState extends MusicBeatState
 {
-	var options:Array<String> = ['Note Colors', 'Controls', 'Adjust Delay and Combo', 'Graphics', 'Visuals and UI', 'Gameplay'];
+	var options:Array<String> = ['Note Colors', 'Controls', 'Adjust Delay and Combo', 'Graphics', 'Visuals', 'Gameplay' #if mobile , 'Mobile Options' #end];
 	private var grpOptions:FlxTypedGroup<Alphabet>;
 	private static var curSelected:Int = 0;
 	public static var menuBG:FlxSprite;
@@ -44,24 +44,36 @@ class OptionsState extends MusicBeatState
 				openSubState(new options.NotesSubState());
 			case 'Controls':
 				#if mobile
-				removeVirtualPad();
-				#end
+				if (ClientPrefs.VirtualPadAlpha == 0) { removeVirtualPad(); }
+				else {
+    				FlxTransitionableState.skipNextTransIn = true;
+    			    FlxTransitionableState.skipNextTransOut = true;
+    			    MusicBeatState.switchState(new mobile.MobileControlsMenu());
+			    }
+			    if (ClientPrefs.VirtualPadAlpha == 0) { openSubState(new options.ControlsSubState()); }
+				#else
 				openSubState(new options.ControlsSubState());
+				#end
 			case 'Graphics':
 				#if mobile
 				removeVirtualPad();
 				#end
 				openSubState(new options.GraphicsSettingsSubState());
-			case 'Visuals and UI':
+			case 'Visuals':
 				#if mobile
 				removeVirtualPad();
 				#end
-				openSubState(new options.VisualsUISubState());
+				openSubState(new options.VisualsSubState());
 			case 'Gameplay':
 				#if mobile
 				removeVirtualPad();
 				#end
 				openSubState(new options.GameplaySettingsSubState());
+			#if mobile
+			case 'Mobile Options':
+				removeVirtualPad();
+			    openSubState(new mobile.options.MobileOptionsSubState());
+			#end
 			case 'Adjust Delay and Combo':
 				LoadingState.loadAndSwitchState(new options.NoteOffsetState());
 		}
@@ -106,7 +118,7 @@ class OptionsState extends MusicBeatState
 		ClientPrefs.saveSettings();
 
 		#if mobile
-		var tipText:FlxText = new FlxText(10, 12, 0, 'Press X to Go In Android Controls Menu', 16);
+		var tipText:FlxText = new FlxText(10, 12, 0, 'Press X to Go In Mobile Controls Menu', 16);
 		tipText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		tipText.borderSize = 2;
 		tipText.scrollFactor.set();
@@ -122,7 +134,7 @@ class OptionsState extends MusicBeatState
 		ClientPrefs.saveSettings();
 
 		#if mobile
-		addVirtualPad(UP_DOWN, A_B_X_Y);
+		addVirtualPad(UP_DOWN, A_B);
 		#end
 
 		super.create();

@@ -3,7 +3,7 @@ package;
 #if desktop
 import Discord.DiscordClient;
 #end
-import flash.text.TextField;
+import openfl.text.TextField;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.addons.display.FlxGridOverlay;
@@ -22,7 +22,7 @@ import sys.FileSystem;
 import haxe.Json;
 import haxe.format.JsonParser;
 import openfl.display.BitmapData;
-import flash.geom.Rectangle;
+import openfl.geom.Rectangle;
 import flixel.ui.FlxButton;
 import flixel.FlxBasic;
 import sys.io.File;
@@ -377,8 +377,8 @@ class ModsMenuState extends MusicBeatState
 
 		FlxG.mouse.visible = true;
 
-                #if mobile
-                addVirtualPad(UP_DOWN, B);
+                #if ios
+                addVirtualPad(NONE, B);
                 #end
 
 		super.create();
@@ -476,7 +476,7 @@ class ModsMenuState extends MusicBeatState
 			noModsTxt.alpha = 1 - Math.sin((Math.PI * noModsSine) / 180);
 		}
 
-		if(canExit && controls.BACK)
+		if(canExit && controls.BACK #if android || canExit && FlxG.android.justReleased.BACK #end #if mobile || canExit && SwipeUtil.swipeRight #end )
 		{
 			if(colorTween != null) {
 				colorTween.cancel();
@@ -503,12 +503,12 @@ class ModsMenuState extends MusicBeatState
 			}
 		}
 
-		if(controls.UI_UP_P)
+		if(controls.UI_UP_P || SwipeUtil.swipeUp && !noModsTxt.visible)
 		{
 			changeSelection(-1);
 			FlxG.sound.play(Paths.sound('scrollMenu'));
 		}
-		if(controls.UI_DOWN_P)
+		if(controls.UI_DOWN_P || SwipeUtil.swipeDown && !noModsTxt.visible)
 		{
 			changeSelection(1);
 			FlxG.sound.play(Paths.sound('scrollMenu'));

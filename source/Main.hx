@@ -80,15 +80,15 @@ class Main extends Sprite
 		}
 		else
 		{
-			addEventListener(Event.ADDED_TO_STAGE, init);
+			Lib.current.stage.addEventListener(Event.RESIZE, init);
 		}
 	}
 
 	private function init(?E:Event):Void
 	{
-		if (hasEventListener(Event.ADDED_TO_STAGE))
+		if (Lib.current.stage.hasEventListener(Event.RESIZE))
 		{
-			removeEventListener(Event.ADDED_TO_STAGE, init);
+			Lib.current.stage.removeEventListener(Event.RESIZE, init);
 		}
 
 		setupGame();
@@ -178,11 +178,12 @@ class Main extends Sprite
 		Sys.println(errMsg);
 		Sys.println("Crash dump saved in " + Path.normalize(path));
 
-		Application.current.window.alert(errMsg, "Error!");
+        #if mobile
+        SUtil.showPopUp("Error!", errMsg);
+        #end
     #if desktop
 		DiscordClient.shutdown();
 	 #end
-		Sys.exit(1);
 	}
 	#end
 }

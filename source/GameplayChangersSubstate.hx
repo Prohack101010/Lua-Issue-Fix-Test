@@ -3,7 +3,7 @@ package;
 #if desktop
 import Discord.DiscordClient;
 #end
-import flash.text.TextField;
+import openfl.text.TextField;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.addons.display.FlxGridOverlay;
@@ -14,7 +14,7 @@ import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import lime.utils.Assets;
 import flixel.FlxSubState;
-import flash.text.TextField;
+import openfl.text.TextField;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.util.FlxSave;
@@ -165,8 +165,11 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		changeSelection();
 		reloadCheckboxes();
 
-		#if mobile
-		addVirtualPad(FULL, A_B_C);
+		#if ios
+		addVirtualPad(LEFT_RIGHT, A_B_C);
+		addPadCamera();
+		#elseif android
+		addVirtualPad(LEFT_RIGHT, A_C);
 		addPadCamera();
 		#end
 	}
@@ -176,16 +179,16 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 	var holdValue:Float = 0;
 	override function update(elapsed:Float)
 	{
-		if (controls.UI_UP_P)
+		if (controls.UI_UP_P || SwipeUtil.swipeUp)
 		{
 			changeSelection(-1);
 		}
-		if (controls.UI_DOWN_P)
+		if (controls.UI_DOWN_P || SwipeUtil.swipeDown)
 		{
 			changeSelection(1);
 		}
 
-		if (controls.BACK) {
+		if (controls.BACK #if android || FlxG.android.justReleased.BACK #end #if mobile || SwipeUtil.swipeRight #end) {
 			
 			#if mobile
 			FlxTransitionableState.skipNextTransOut = true;
@@ -221,7 +224,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 						if(pressed) {
 							var add:Dynamic = null;
 							if(curOption.type != 'string') {
-								add = controls.UI_LEFT ? -curOption.changeValue : curOption.changeValue;
+							add = controls.UI_LEFT ? -curOption.changeValue : curOption.changeValue;
 							}
 
 							switch(curOption.type)
